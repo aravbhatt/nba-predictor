@@ -3,7 +3,6 @@ from datetime import datetime
 from sklearn.linear_model import LogisticRegression
 import pandas as pd
 
-# All NBA Teams
 TEAM_NAME_MAP = {
     'Hawks': 'Atlanta Hawks',
     'Celtics': 'Boston Celtics',
@@ -37,21 +36,21 @@ TEAM_NAME_MAP = {
     'Wizards': 'Washington Wizards',
 }
 
-# Today's Games
+# Getting Data for Today's Games
 today = datetime.now().strftime('%m/%d/%Y')
 games_df = scoreboardv2.ScoreboardV2(game_date=today).get_data_frames()[1]
 
-# Season Stats
+# Stats for this season
 stats_raw = leaguedashteamstats.LeagueDashTeamStats(season='2023-24').get_data_frames()[0]
 stats = stats_raw[['TEAM_NAME', 'W_PCT', 'PTS', 'REB', 'AST']].set_index('TEAM_NAME')
 
-# Train Model
+# Model train
 X = stats[['PTS', 'REB', 'AST']]
 y = (stats['W_PCT'] > 0.5).astype(int)
 model = LogisticRegression()
 model.fit(X, y)
 
-# Rebuild Matchups
+# Rebuilding the matchups
 matchups = {}
 for _, row in games_df.iterrows():
     game_id = row['GAME_ID']
@@ -60,7 +59,7 @@ for _, row in games_df.iterrows():
         matchups[game_id] = []
     matchups[game_id].append(team)
 
-# Predict Each Game
+# Prediction for each game
 print("Predictions for Today's Games:\n")
 
 for game_id, teams in matchups.items():
@@ -72,7 +71,7 @@ for game_id, teams in matchups.items():
     mapped2 = TEAM_NAME_MAP.get(team2)
 
     if not mapped1 or not mapped2:
-        print(f"⚠️ Missing mapping for: {team1} or {team2}")
+        print(f"Missing mapping for: {team1} or {team2}")
         continue
 
     try:
